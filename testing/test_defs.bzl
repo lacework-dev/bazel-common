@@ -28,6 +28,7 @@ def gen_java_tests(
         javacopts = None,
         lib_javacopts = None,
         test_javacopts = None,
+        resources = None,
         resource_jars = None,
         jvm_flags = None,  # Applied to tests only
         **kwargs):
@@ -61,6 +62,7 @@ def gen_java_tests(
         plugins = plugins,
         test_deps = test_deps,
         test_javacopts = test_javacopts,
+        resources = resources,
         resource_jars = resource_jars,
         jvm_flags = jvm_flags,
         test_plugins = test_plugins,
@@ -142,17 +144,19 @@ def _gen_java_tests(
         javacopts = None,
         lib_javacopts = None,
         test_javacopts = None,
+        resources = None,
         resource_jars = None,
         jvm_flags = None,
         runtime_deps = None,
-        tags = None):
+        tags = None,
+        visibility = None):
     test_files = []
     supporting_lib_files = []
 
     for src in srcs:
         if src.endswith("Test.java"):
             test_files.append(src)
-            supporting_lib_files.append(src)
+        supporting_lib_files.append(src)
 
     supporting_lib_files_name = name + "_lib"
     runtime_deps = _concat(runtime_deps, [":" + supporting_lib_files_name])
@@ -163,9 +167,11 @@ def _gen_java_tests(
         javacopts = _concat(javacopts, lib_javacopts),
         plugins = _concat(plugins, lib_plugins),
         deps = _concat(deps, lib_deps, test_deps),
-            resource_jars = resource_jars,
-        )
-
+        resources = resources,
+        resource_jars = resource_jars,
+        visibility = visibility,
+    )
+    
     package_name = native.package_name()
 
     if prefix_path:
