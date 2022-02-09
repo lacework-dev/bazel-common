@@ -152,26 +152,19 @@ def _gen_java_tests(
     for src in srcs:
         if src.endswith("Test.java"):
             test_files.append(src)
-        else:
             supporting_lib_files.append(src)
 
-    test_deps = _concat(deps, test_deps)
-    test_resource_jars = None
-    if supporting_lib_files:
-        supporting_lib_files_name = name + "_lib"
-        test_deps.append(":" + supporting_lib_files_name)
-        library_rule_type(
-            name = supporting_lib_files_name,
-            testonly = 1,
-            srcs = supporting_lib_files,
-            javacopts = _concat(javacopts, lib_javacopts),
-            plugins = _concat(plugins, lib_plugins),
-            deps = _concat(deps, lib_deps),
+    supporting_lib_files_name = name + "_lib"
+    runtime_deps = _concat(runtime_deps, [":" + supporting_lib_files_name])
+    library_rule_type(
+        name = supporting_lib_files_name,
+        testonly = 1,
+        srcs = supporting_lib_files,
+        javacopts = _concat(javacopts, lib_javacopts),
+        plugins = _concat(plugins, lib_plugins),
+        deps = _concat(deps, lib_deps, test_deps),
             resource_jars = resource_jars,
         )
-    else:
-        # There is no supporting library, so promote these resources to each test
-        test_resource_jars = resource_jars
 
     package_name = native.package_name()
 
@@ -190,14 +183,11 @@ def _gen_java_tests(
         test_class = (package_name + "/" + test_name).rpartition(prefix_path)[2].replace("/", ".")
         test_rule_type(
             name = test_name,
-            srcs = [test_file],
             javacopts = _concat(javacopts, test_javacopts),
             jvm_flags = jvm_flags,
             plugins = _concat(plugins, test_plugins),
             tags = _concat(["gen_java_tests"], tags),
             test_class = test_class,
-            deps = test_deps,
-            resource_jars = test_resource_jars,
             runtime_deps = runtime_deps,
         )
 
